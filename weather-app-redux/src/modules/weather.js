@@ -12,38 +12,53 @@ export const getWeatherSuccess = (result) => ({
   payload: result,
 });
 
-export const getWeatherPending = () => ({ type: GET_WEATHER_PENDING });
+export const getWeatherPending = (val) => ({
+  type: GET_WEATHER_PENDING,
+  payload: val,
+});
 
 // API호출 함수
-function getSeoulAPI() {
+function getSeoulAPI(action) {
+  console.log(action);
   return axios.get(
-    "http://api.openweathermap.org/data/2.5/weather?q=Seoul&units=metric&APPID=e75a0a68adc50371c5898d8d43931062"
+    `http://api.openweathermap.org/data/2.5/weather?q=${action}&units=metric&APPID=e75a0a68adc50371c5898d8d43931062`
   );
 }
-function getDaejeonAPI() {
-  return axios.get(
-    "http://api.openweathermap.org/data/2.5/weather?q=Daejeon&units=metric&APPID=e75a0a68adc50371c5898d8d43931062"
-  );
-}
-function getGwangjuAPI() {
-  return axios.get(
-    "http://api.openweathermap.org/data/2.5/weather?q=Gwangju&units=metric&APPID=e75a0a68adc50371c5898d8d43931062"
-  );
-}
+// function getDaejeonAPI() {
+//   return axios.get(
+//     "http://api.openweathermap.org/data/2.5/weather?q=Daejeon&units=metric&APPID=e75a0a68adc50371c5898d8d43931062"
+//   );
+// }
+// function getGwangjuAPI() {
+//   return axios.get(
+//     "http://api.openweathermap.org/data/2.5/weather?q=Gwangju&units=metric&APPID=e75a0a68adc50371c5898d8d43931062"
+//   );
+// }
 
 function* getWeatherSaga(action) {
   const res1 = yield call(getSeoulAPI, action.payload);
-  const res2 = yield call(getDaejeonAPI, action.payload);
-  const res3 = yield call(getGwangjuAPI, action.payload);
-  const resAll = [res1, res2, res3];
-  const result = resAll.map((res) => {
-    const data = res.data;
-    return {
-      area: data.name,
-      lowTemp: Math.floor(data.main.temp_min),
-      highTemp: Math.floor(data.main.temp_max),
-    };
-  });
+  // const res2 = yield call(getDaejeonAPI, action.payload);
+  // const res3 = yield call(getGwangjuAPI, action.payload);
+
+  console.log(res1);
+  const data = res1.data;
+  // const resAll = [res1, res2, res3];
+  // const result = resAll.map((res) => {
+  //   const data = res.data;
+  //   return {
+  //     area: data.name,
+  //     lowTemp: Math.floor(data.main.temp_min),
+  //     highTemp: Math.floor(data.main.temp_max),
+  //   };
+  // });
+
+  const result = {
+    area: data.name,
+    lowTemp: Math.floor(data.main.temp_min),
+    highTemp: Math.floor(data.main.temp_max),
+  };
+
+  // map 돌리기 전
   // const result = [
   //   {
   //     area: res1.data.name,
@@ -62,8 +77,11 @@ function* getWeatherSaga(action) {
   //   },
   // ];
 
-  console.log(result);
   yield put(getWeatherSuccess(result));
+}
+
+export function* weatherSaga() {
+  yield takeEvery("GET_WEATHER_PENDING", getWeatherSaga);
 }
 
 //초기값
@@ -72,9 +90,6 @@ const INITIAL_STATE = {
 };
 
 //export
-export function* weatherSaga() {
-  yield takeEvery("GET_WEATHER_PENDING", getWeatherSaga);
-}
 
 export default function getWeather(state = INITIAL_STATE, action) {
   switch (action.type) {
