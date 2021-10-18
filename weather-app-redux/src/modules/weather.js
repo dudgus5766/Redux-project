@@ -18,52 +18,6 @@ export const getWeatherPending = () => ({
   type: GET_WEATHER_PENDING,
 });
 
-// API호출 함수
-// function getSeoulAPI() {
-//   return axios.get(
-//     `http://api.openweathermap.org/data/2.5/weather?q=Seoul&units=metric&APPID=e75a0a68adc50371c5898d8d43931062`
-//   );
-// }
-// function getDaejeonAPI() {
-//   return axios.get(
-//     "http://api.openweathermap.org/data/2.5/weather?q=Daejeon&units=metric&APPID=e75a0a68adc50371c5898d8d43931062"
-//   );
-// }
-// function getGwangjuAPI() {
-//   return axios.get(
-//     "http://api.openweathermap.org/data/2.5/weather?q=Gwangju&units=metric&APPID=e75a0a68adc50371c5898d8d43931062"
-//   );
-// }
-
-// channel 사용하지 않은 채로 진행했던 saga함수
-// function* getWeatherSaga() {
-
-//     // const res1 = yield call(getSeoulAPI);
-//     // const res1 = chan.data;
-//     // const res2 = yield call(getDaejeonAPI);
-//     // const res3 = yield call(getGwangjuAPI);
-//     // yield delay(5000);
-
-//     // const resAll = [res1, res2, res3];
-
-//     // const result = resAll.map((res) => {
-//     //   const data = res.data;
-//     //   return {
-//     //     area: data.name,
-//     //     lowTemp: Math.floor(data.main.temp_min),
-//     //     highTemp: Math.floor(data.main.temp_max),
-//     //   };
-//     // });
-//     const result = {
-//       area: data.name,
-//       lowTemp: Math.floor(data.main.temp_min),
-//       highTemp: Math.floor(data.main.temp_max),
-//     };
-
-//     yield put(getWeatherSuccess(result));
-//   }
-// }
-
 function countdown(secs) {
   return eventChannel((emitter) => {
     const iv = setInterval(async () => {
