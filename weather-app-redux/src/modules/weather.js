@@ -1,4 +1,6 @@
-import { call, put, takeEvery } from "redux-saga/effects";
+import { call, put, take } from "redux-saga/effects";
+import { eventChannel, END } from "redux-saga";
+
 import axios from "axios";
 
 //액션 정의
@@ -12,18 +14,16 @@ export const getWeatherSuccess = (result) => ({
   payload: result,
 });
 
-export const getWeatherPending = (val) => ({
+export const getWeatherPending = () => ({
   type: GET_WEATHER_PENDING,
-  payload: val,
 });
 
 // API호출 함수
-function getSeoulAPI(action) {
-  console.log(action);
-  return axios.get(
-    `http://api.openweathermap.org/data/2.5/weather?q=${action}&units=metric&APPID=e75a0a68adc50371c5898d8d43931062`
-  );
-}
+// function getSeoulAPI() {
+//   return axios.get(
+//     `http://api.openweathermap.org/data/2.5/weather?q=Seoul&units=metric&APPID=e75a0a68adc50371c5898d8d43931062`
+//   );
+// }
 // function getDaejeonAPI() {
 //   return axios.get(
 //     "http://api.openweathermap.org/data/2.5/weather?q=Daejeon&units=metric&APPID=e75a0a68adc50371c5898d8d43931062"
@@ -35,53 +35,66 @@ function getSeoulAPI(action) {
 //   );
 // }
 
-function* getWeatherSaga(action) {
-  const res1 = yield call(getSeoulAPI, action.payload);
-  // const res2 = yield call(getDaejeonAPI, action.payload);
-  // const res3 = yield call(getGwangjuAPI, action.payload);
+// channel 사용하지 않은 채로 진행했던 saga함수
+// function* getWeatherSaga() {
 
-  console.log(res1);
-  const data = res1.data;
-  // const resAll = [res1, res2, res3];
-  // const result = resAll.map((res) => {
-  //   const data = res.data;
-  //   return {
-  //     area: data.name,
-  //     lowTemp: Math.floor(data.main.temp_min),
-  //     highTemp: Math.floor(data.main.temp_max),
-  //   };
-  // });
+//     // const res1 = yield call(getSeoulAPI);
+//     // const res1 = chan.data;
+//     // const res2 = yield call(getDaejeonAPI);
+//     // const res3 = yield call(getGwangjuAPI);
+//     // yield delay(5000);
 
-  const result = {
-    area: data.name,
-    lowTemp: Math.floor(data.main.temp_min),
-    highTemp: Math.floor(data.main.temp_max),
-  };
+//     // const resAll = [res1, res2, res3];
 
-  // map 돌리기 전
-  // const result = [
-  //   {
-  //     area: res1.data.name,
-  //     lowTemp: res1.data.main.temp_min,
-  //     highTemp: res1.data.main.temp_max,
-  //   },
-  //   {
-  //     area: res2.data.name,
-  //     lowTemp: res2.data.main.temp_min,
-  //     highTemp: res2.data.main.temp_max,
-  //   },
-  //   {
-  //     area: res3.data.name,
-  //     lowTemp: res3.data.main.temp_min,
-  //     highTemp: res3.data.main.temp_max,
-  //   },
-  // ];
+//     // const result = resAll.map((res) => {
+//     //   const data = res.data;
+//     //   return {
+//     //     area: data.name,
+//     //     lowTemp: Math.floor(data.main.temp_min),
+//     //     highTemp: Math.floor(data.main.temp_max),
+//     //   };
+//     // });
+//     const result = {
+//       area: data.name,
+//       lowTemp: Math.floor(data.main.temp_min),
+//       highTemp: Math.floor(data.main.temp_max),
+//     };
 
-  yield put(getWeatherSuccess(result));
+//     yield put(getWeatherSuccess(result));
+//   }
+// }
+
+function countdown(secs) {
+  return eventChannel((emitter) => {
+    const iv = setInterval(async () => {
+      secs -= 1;
+      if (secs > 0) {
+        const result = await axios.get(
+          "http://api.openweathermap.org/data/2.5/weather?q=Seoul&units=metric&APPID=e75a0a68adc50371c5898d8d43931062"
+        );
+        emitter(result);
+      } else {
+        emitter(END);
+      }
+    }, 1000);
+    return () => {
+      clearInterval(iv);
+    };
+  });
 }
 
 export function* weatherSaga() {
-  yield takeEvery("GET_WEATHER_PENDING", getWeatherSaga);
+  const channel = yield call(countdown, 10);
+
+  while (true) {
+    const { data } = yield take(channel);
+    const result = {
+      area: data.name,
+      lowTemp: Math.floor(data.main.temp_min),
+      highTemp: Math.floor(data.main.temp_max),
+    };
+    yield put(getWeatherSuccess(result));
+  }
 }
 
 //초기값
